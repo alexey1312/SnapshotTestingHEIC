@@ -1,6 +1,7 @@
 # 🗜 SnapshotTestingHEIC
 
 [![Swift 5.2](https://img.shields.io/badge/swift-5.2-ED523F.svg?style=flat)](https://swift.org/download/)
+[![Build Status](https://github.com/alexey1312/SnapshotTestingHEIC/workflows/CI/badge.svg)](https://github.com/alexey1312/SnapshotTestingHEIC/actions)
 
 An extension to SnapshotTesting which allows you to create HEIC images.
 The benefit of using HEIC instead of PNG is that it can store as much as image quality as PNG, but with a smaller file size.
