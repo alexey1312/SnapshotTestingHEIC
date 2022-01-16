@@ -1,3 +1,4 @@
+#if os(iOS) || os(tvOS)
 import UIKit
 
 class TestViewController: UIViewController {
@@ -19,3 +20,4 @@ class TestViewController: UIViewController {
         ])
     }
 }
+#endif

@@ -1,6 +1,6 @@
 #if os(iOS) || os(tvOS)
 import AVFoundation
-import UIKit
+import Foundation
 
 @available(tvOSApplicationExtension 11.0, *)
 extension UIImage {
@@ -25,5 +25,4 @@ extension UIImage {
         return data as Data
     }
 }
-
 #endif

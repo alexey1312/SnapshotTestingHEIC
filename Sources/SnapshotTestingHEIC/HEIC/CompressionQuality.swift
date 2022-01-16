@@ -1,4 +1,4 @@
-import UIKit
+import Foundation
 
 public struct CompressionQuality: ExpressibleByFloatLiteral {
     public typealias FloatLiteralType = Float

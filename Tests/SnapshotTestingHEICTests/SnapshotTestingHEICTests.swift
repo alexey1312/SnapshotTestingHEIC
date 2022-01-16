@@ -1,3 +1,4 @@
+#if os(iOS) || os(tvOS)
 import XCTest
 import SnapshotTesting
 @testable import SnapshotTestingHEIC
@@ -41,3 +42,4 @@ final class SnapshotTestingHEICTests: XCTestCase {
     }
 
 }
+#endif
