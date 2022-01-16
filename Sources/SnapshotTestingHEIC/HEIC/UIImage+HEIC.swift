@@ -1,6 +1,6 @@
 #if os(iOS) || os(tvOS)
 import AVFoundation
-import Foundation
+import UIKit
 
 @available(tvOSApplicationExtension 11.0, *)
 extension UIImage {

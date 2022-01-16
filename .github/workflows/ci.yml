@@ -7,13 +7,14 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
-
-    runs-on: macos-latest
+  xcode-build:
+    name: Xcode Build
+    runs-on: macOS-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Build
-      run: swift build -v
-    - name: Run tests
-      run: swift test -v
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Force Xcode 13.1
+        run: sudo xcode-select -switch /Applications/Xcode_13.1.app
+      - name: Build for iOS
+        run: swift build -v
