@@ -5,7 +5,7 @@
 
 An extension to SnapshotTesting which allows you to create HEIC images.
 The benefit of using HEIC instead of PNG is that it can store as much as image quality as PNG, but with a smaller file size.
-You can verify this by looking at SnapshotTestingHEICTests.
+You can verify this by looking at [SnapshotTestingHEICTests](Tests/SnapshotTestingHEICTests/__Snapshots__/SnapshotTestingHEICTests).
 
 ## Usage
 
