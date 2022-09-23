@@ -8,7 +8,7 @@ let package = Package(
     name: "SnapshotTestingHEIC",
     platforms: [
         .iOS(.v11),
-        .macOS(.v10_13),
+        .macOS(.v10_15),
         .tvOS(.v10)
     ],
     products: [
@@ -17,16 +17,16 @@ let package = Package(
             targets: ["SnapshotTestingHEIC"]),
     ],
     dependencies: [
-        .package(name: "SnapshotTesting",
+        .package(name: "swift-snapshot-testing",
                  url: "https://github.com/pointfreeco/swift-snapshot-testing.git",
-                 from: "1.8.0"),
+                 from: "1.10.0"),
     ],
     targets: [
         .target(
             name: "SnapshotTestingHEIC",
             dependencies: [
                 .product(name: "SnapshotTesting",
-                         package: "SnapshotTesting"),
+                         package: "swift-snapshot-testing"),
             ]
         ),
         .testTarget(
