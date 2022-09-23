@@ -7,9 +7,9 @@ import Foundation
 let package = Package(
     name: "SnapshotTestingHEIC",
     platforms: [
-        .iOS(.v11),
+        .iOS(.v13),
         .macOS(.v10_15),
-        .tvOS(.v10)
+        .tvOS(.v13)
     ],
     products: [
         .library(
