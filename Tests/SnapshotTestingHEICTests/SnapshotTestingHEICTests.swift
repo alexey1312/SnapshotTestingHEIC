@@ -1,3 +1,4 @@
+// Use iPhone 8 for tests
 import XCTest
 import SnapshotTesting
 @testable import SnapshotTestingHEIC
@@ -10,7 +11,7 @@ final class SnapshotTestingHEICTests: XCTestCase {
     override func setUp() {
         super.setUp()
         sut = TestViewController()
-        //        isRecording = true
+//        isRecording = true
     }
 
     override func tearDown() {
