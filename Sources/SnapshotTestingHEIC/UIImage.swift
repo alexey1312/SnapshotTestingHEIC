@@ -285,6 +285,7 @@ final class ThresholdImageProcessorKernel: CIImageProcessorKernel {
 
 
 #if os(macOS)
+import AppKit
 typealias Image = NSImage
 typealias View = NSView
 #elseif os(iOS) || os(tvOS)
