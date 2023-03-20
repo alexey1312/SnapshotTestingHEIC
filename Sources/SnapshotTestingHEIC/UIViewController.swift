@@ -13,12 +13,14 @@ public extension Snapshotting where Value == UIViewController, Format == UIImage
     /// - Parameters:
     ///   - config: A set of device configuration settings.
     ///   - precision: The percentage of pixels that must match.
+    ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a match. [98-99% mimics the precision of the human eye.](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e)
     ///   - size: A view size override.
     ///   - traits: A trait collection override.
     ///   - compressionQuality: The desired compression quality to use when writing to an image destination.
     static func imageHEIC(
         on config: ViewImageConfig,
         precision: Float = 1,
+        perceptualPrecision: Float = 1,
         size: CGSize? = nil,
         traits: UITraitCollection = .init(),
         compressionQuality: CompressionQuality = .lossless
@@ -26,6 +28,7 @@ public extension Snapshotting where Value == UIViewController, Format == UIImage
     -> Snapshotting {
         return SimplySnapshotting.imageHEIC(
             precision: precision,
+            perceptualPrecision: perceptualPrecision,
             scale: traits.displayScale,
             compressionQuality: compressionQuality
         ).asyncPullback { viewController in
@@ -46,12 +49,14 @@ public extension Snapshotting where Value == UIViewController, Format == UIImage
     ///   and `UIVisualEffect`s. This option requires a host application for your tests
     ///   and will _not_ work for framework test targets.
     ///   - precision: The percentage of pixels that must match.
+    ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a match. [98-99% mimics the precision of the human eye.](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e)
     ///   - size: A view size override.
     ///   - traits: A trait collection override.
     ///   - compressionQuality: The desired compression quality to use when writing to an image destination.
     static func imageHEIC(
         drawHierarchyInKeyWindow: Bool = false,
         precision: Float = 1,
+        perceptualPrecision: Float = 1,
         size: CGSize? = nil,
         traits: UITraitCollection = .init(),
         compressionQuality: CompressionQuality = .lossless
@@ -59,6 +64,7 @@ public extension Snapshotting where Value == UIViewController, Format == UIImage
     -> Snapshotting {
         return SimplySnapshotting.imageHEIC(
             precision: precision,
+            perceptualPrecision: perceptualPrecision,
             scale: traits.displayScale,
             compressionQuality: compressionQuality
         ).asyncPullback { viewController in
