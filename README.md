@@ -1,6 +1,7 @@
 # 🗜 SnapshotTestingHEIC
 
-[![Swift 5.2](https://img.shields.io/badge/swift-5.2-ED523F.svg?style=flat)](https://swift.org/download/)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Falexey1312%2FSnapshotTestingHEIC%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/alexey1312/SnapshotTestingHEIC)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Falexey1312%2FSnapshotTestingHEIC%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/alexey1312/SnapshotTestingHEIC)
 [![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Falexey1312%2FSnapshotTestingHEIC%2Fbadge&style=flat)](https://actions-badge.atrox.dev/alexey1312/SnapshotTestingHEIC/goto)
 
 An extension to [SnapshotTesting](https://github.com/pointfreeco/swift-snapshot-testing) which allows you to create HEIC images.
