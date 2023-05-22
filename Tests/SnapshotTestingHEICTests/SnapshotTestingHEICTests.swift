@@ -1,6 +1,8 @@
 // Use iPhone 8 for tests
 import XCTest
 import SnapshotTesting
+import SwiftUI
+
 @testable import SnapshotTestingHEIC
 
 final class SnapshotTestingHEICTests: XCTestCase {
@@ -19,6 +21,7 @@ final class SnapshotTestingHEICTests: XCTestCase {
         super.tearDown()
     }
 
+//    // ViewController Tests
     func test_without_HEIC() {
         assertSnapshot(matching: sut, as: .image(on: .iPadPro12_9))
     }
@@ -41,6 +44,59 @@ final class SnapshotTestingHEICTests: XCTestCase {
     func test_HEIC_compressionQuality_custom() {
         assertSnapshot(matching: sut, as: .imageHEIC(on: .iPadPro12_9,
                                                      compressionQuality: 0.75))
+    }
+
+    // SwiftUI Tests
+
+    func test_swiftui_without_HEIC() {
+        let view: some SwiftUI.View = SwiftUIView_Previews.previews
+
+        assertSnapshot(matching: view,
+                       as: .imageHEIC(layout: .device(config: .iPadPro12_9)))
+    }
+
+    func test_swiftui_HEIC_compressionQuality_lossless() {
+        let view: some SwiftUI.View = SwiftUIView_Previews.previews
+
+        assertSnapshot(matching: view,
+                       as: .imageHEIC(
+                        layout: .device(config: .iPadPro12_9),
+                        compressionQuality: .lossless
+                       )
+        )
+    }
+
+    func test_swiftui_HEIC_compressionQuality_medium() {
+        let view: some SwiftUI.View = SwiftUIView_Previews.previews
+
+        assertSnapshot(matching: view,
+                       as: .imageHEIC(
+                        layout: .device(config: .iPadPro12_9),
+                        compressionQuality: .medium
+                       )
+        )
+    }
+
+    func test_swiftui_HEIC_compressionQuality_maximum() {
+        let view: some SwiftUI.View = SwiftUIView_Previews.previews
+
+        assertSnapshot(matching: view,
+                       as: .imageHEIC(
+                        layout: .device(config: .iPadPro12_9),
+                        compressionQuality: .maximum
+                       )
+        )
+    }
+
+    func test_swiftui_HEIC_compressionQuality_custom() {
+        let view: some SwiftUI.View = SwiftUIView_Previews.previews
+
+        assertSnapshot(matching: view,
+                       as: .imageHEIC(
+                        layout: .device(config: .iPadPro12_9),
+                        compressionQuality: 0.75
+                       )
+        )
     }
 #endif
 
