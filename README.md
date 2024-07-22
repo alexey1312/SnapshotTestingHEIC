@@ -41,7 +41,7 @@ If you want to use SnapshotTestingHEIC in any other project that uses [Swift Pac
 
 ```swift
 dependencies: [
-  .package(name: "SnapshotTestingStitch", url: "https://github.com/alexey1312/SnapshotTestingHEIC.git", from: "1.0.0"),
+  .package(url: "https://github.com/alexey1312/SnapshotTestingHEIC.git", from: "1.0.0"),
 ]
 ```
 
