@@ -13,7 +13,6 @@ final class SnapshotTestingHEICTests: XCTestCase {
     override func setUp() {
         super.setUp()
         sut = TestViewController()
-//        isRecording = true
     }
 
     override func tearDown() {
@@ -23,54 +22,53 @@ final class SnapshotTestingHEICTests: XCTestCase {
 
 //    // ViewController Tests
     func test_without_HEIC() {
-        assertSnapshot(matching: sut, as: .image(on: .iPadPro12_9))
+        assertSnapshot(of: sut, as: .image(on: .iPadPro12_9))
     }
 
     func test_HEIC_compressionQuality_lossless() {
-        assertSnapshot(matching: sut, as: .imageHEIC(on: .iPadPro12_9,
-                                                     compressionQuality: .lossless))
+        assertSnapshot(of: sut, as: .imageHEIC(on: .iPadPro12_9, compressionQuality: .lossless))
     }
 
     func test_HEIC_compressionQuality_medium() {
-        assertSnapshot(matching: sut, as: .imageHEIC(on: .iPadPro12_9,
-                                                     compressionQuality: .medium))
+        assertSnapshot(of: sut, as: .imageHEIC(on: .iPadPro12_9, compressionQuality: .medium))
     }
 
     func test_HEIC_compressionQuality_maximum() {
-        assertSnapshot(matching: sut, as: .imageHEIC(on: .iPadPro12_9,
-                                                     compressionQuality: .maximum))
+        assertSnapshot(of: sut, as: .imageHEIC(on: .iPadPro12_9, compressionQuality: .maximum))
     }
 
     func test_HEIC_compressionQuality_custom() {
-        assertSnapshot(matching: sut, as: .imageHEIC(on: .iPadPro12_9,
-                                                     compressionQuality: 0.75))
+        assertSnapshot(of: sut, as: .imageHEIC(on: .iPadPro12_9, compressionQuality: .custom(0.75) ))
+    }
+
+    func test_HEIC_compressionQuality_custom_minus() {
+        assertSnapshot(of: sut, as: .imageHEIC(on: .iPadPro12_9, compressionQuality: .custom(-20) ))
     }
 
     // SwiftUI Tests
 
     func test_swiftui_without_HEIC() {
-        let view: some SwiftUI.View = SwiftUIView_Previews.previews
+        let view: some SwiftUI.View = SwiftUIView()
 
-        assertSnapshot(matching: view,
-                       as: .imageHEIC(layout: .device(config: .iPadPro12_9)))
+        assertSnapshot(of: view, as: .imageHEIC(layout: .device(config: .iPadPro12_9)))
     }
 
     func test_swiftui_HEIC_compressionQuality_lossless() {
-        let view: some SwiftUI.View = SwiftUIView_Previews.previews
+        let view: some SwiftUI.View = SwiftUIView()
 
-        assertSnapshot(matching: view,
-                       as: .imageHEIC(
+        assertSnapshot(of: view,
+                        as: .imageHEIC(
                         layout: .device(config: .iPadPro12_9),
                         compressionQuality: .lossless
-                       )
+                        )
         )
     }
 
     func test_swiftui_HEIC_compressionQuality_medium() {
-        let view: some SwiftUI.View = SwiftUIView_Previews.previews
+        let view: some SwiftUI.View = SwiftUIView()
 
-        assertSnapshot(matching: view,
-                       as: .imageHEIC(
+        assertSnapshot(of: view,
+                        as: .imageHEIC(
                         layout: .device(config: .iPadPro12_9),
                         compressionQuality: .medium
                        )
@@ -78,10 +76,10 @@ final class SnapshotTestingHEICTests: XCTestCase {
     }
 
     func test_swiftui_HEIC_compressionQuality_maximum() {
-        let view: some SwiftUI.View = SwiftUIView_Previews.previews
+        let view: some SwiftUI.View = SwiftUIView()
 
-        assertSnapshot(matching: view,
-                       as: .imageHEIC(
+        assertSnapshot(of: view,
+                        as: .imageHEIC(
                         layout: .device(config: .iPadPro12_9),
                         compressionQuality: .maximum
                        )
@@ -89,12 +87,12 @@ final class SnapshotTestingHEICTests: XCTestCase {
     }
 
     func test_swiftui_HEIC_compressionQuality_custom() {
-        let view: some SwiftUI.View = SwiftUIView_Previews.previews
+        let view: some SwiftUI.View = SwiftUIView()
 
-        assertSnapshot(matching: view,
+        assertSnapshot(of: view,
                        as: .imageHEIC(
                         layout: .device(config: .iPadPro12_9),
-                        compressionQuality: 0.75
+                        compressionQuality: .custom(0.75)
                        )
         )
     }
@@ -119,7 +117,7 @@ final class SnapshotTestingHEICTests: XCTestCase {
         button.layer?.backgroundColor = NSColor.red.cgColor
         button.sizeToFit()
         // then
-        assertSnapshot(matching: view, as: .imageHEIC)
+        assertSnapshot(of: view, as: .imageHEIC)
     }
 #endif
 

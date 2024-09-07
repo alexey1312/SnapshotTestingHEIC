@@ -3,7 +3,7 @@ import AVFoundation
 import Cocoa
 
 extension NSImage {
-    func heicData(compressionQuality: CompressionQuality = .lossless) -> Data? {
+    func heicData(compressionQuality: CompressionQuality) -> Data? {
         let data = NSMutableData()
 
         guard let imageDestination = CGImageDestinationCreateWithData(
@@ -17,7 +17,7 @@ extension NSImage {
         else { return nil }
 
         let options: NSDictionary = [
-            kCGImageDestinationLossyCompressionQuality: compressionQuality.value
+            kCGImageDestinationLossyCompressionQuality: compressionQuality.rawValue
         ]
 
         CGImageDestinationAddImage(imageDestination, cgImage, options)

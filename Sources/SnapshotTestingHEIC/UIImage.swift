@@ -27,13 +27,16 @@ public extension Diffing where Value == UIImage {
         } else {
             imageScale = UIScreen.main.scale
         }
-        
+
+        let emptyHeicData: Data
+        if #available(iOS 17.0, *) {
+            emptyHeicData = emptyImage().heicData() ?? Data()
+        } else {
+            emptyHeicData = Data()
+        }
         return Diffing(
-            toData: {
-                return $0.heicData(compressionQuality: compressionQuality) ?? emptyImage()
-                    .heicData(compressionQuality: compressionQuality)!
-            },
-            fromData: { UIImage(data: $0, scale: imageScale)! },
+            toData: { $0.heicData(compressionQuality: compressionQuality.rawValue) ?? emptyHeicData },
+            fromData: { UIImage(data: $0, scale: imageScale) ?? emptyImage() },
             diff: { old, new in
                 guard let message = compare(old, new,
                                             precision: precision,
@@ -135,7 +138,7 @@ private func compare(
     var newerBytes = [UInt8](repeating: 0, count: byteCount)
 
     guard
-        let heicData = new.heicData(compressionQuality: compressionQuality),
+        let heicData = new.heicData(compressionQuality: compressionQuality.rawValue),
         let newerCgImage = UIImage(data: heicData)?.cgImage,
         let newerContext = context(for: newerCgImage, data: &newerBytes),
         let newerData = newerContext.data

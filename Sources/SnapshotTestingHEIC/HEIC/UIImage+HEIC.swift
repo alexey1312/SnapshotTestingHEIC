@@ -4,7 +4,7 @@ import UIKit
 
 @available(tvOSApplicationExtension 11.0, *)
 extension UIImage {
-    func heicData(compressionQuality: CompressionQuality = .lossless) -> Data? {
+    func heicData(compressionQuality: CGFloat) -> Data? {
         let data = NSMutableData()
 
         guard let imageDestination = CGImageDestinationCreateWithData(
@@ -12,15 +12,22 @@ extension UIImage {
         )
         else { return nil }
 
-        guard let cgImage = cgImage else { return nil }
+        guard let cgImage = cgImage 
+        else { return nil }
 
-        let options: NSDictionary = [
-            kCGImageDestinationLossyCompressionQuality: compressionQuality.value
-        ]
+        let options: NSDictionary?
+        if compressionQuality >= 1 {
+            options = nil
+        } else {
+            options = [
+                kCGImageDestinationLossyCompressionQuality: compressionQuality
+            ]
+        }
 
         CGImageDestinationAddImage(imageDestination, cgImage, options)
 
-        guard CGImageDestinationFinalize(imageDestination) else { return nil }
+        guard CGImageDestinationFinalize(imageDestination) 
+        else { return nil }
 
         return data as Data
     }

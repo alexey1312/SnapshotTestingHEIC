@@ -13,10 +13,13 @@ class TestViewController: UIViewController {
         label.text = "Test SnapshotTestingHEIC"
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = .systemFont(ofSize: 64)
+        label.textAlignment = .center
         self.view.addSubview(label)
         NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: self.view.centerYAnchor)
+            label.topAnchor.constraint(equalTo: self.view.topAnchor),
+            label.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+            label.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+            label.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
         ])
     }
 }
