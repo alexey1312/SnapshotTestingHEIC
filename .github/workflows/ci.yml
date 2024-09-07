@@ -8,13 +8,13 @@ on:
 
 jobs:
   xcode-build:
-    name: Xcode Build
+    name: 🔨 develop build
     runs-on: macOS-latest
+    timeout-minutes: 90
 
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v2
-      - name: Force Xcode 13.1
-        run: sudo xcode-select -switch /Applications/Xcode_13.1.app
-      - name: Build for iOS
-        run: swift build -v
+      - name: 📥 checkout
+        uses: actions/checkout@v4
+
+      - name: 📋 build
+        run: source Scripts/build.sh
