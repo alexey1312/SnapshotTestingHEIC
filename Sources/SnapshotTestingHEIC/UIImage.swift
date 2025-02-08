@@ -29,7 +29,7 @@ public extension Diffing where Value == UIImage {
         }
 
         let emptyHeicData: Data
-        if #available(iOS 17.0, *) {
+        if #available(iOS 17.0, tvOS 17.0, *) {
             emptyHeicData = emptyImage().heicData() ?? Data()
         } else {
             emptyHeicData = Data()
