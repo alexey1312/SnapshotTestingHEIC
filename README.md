@@ -8,6 +8,18 @@
 
 An extension to [SnapshotTesting](https://github.com/pointfreeco/swift-snapshot-testing) which allows you to create HEIC images.
 The benefit of using HEIC instead of PNG is that it can store as much as image quality as PNG, but with a smaller file size.
+
+## File Size Comparison
+
+Real-world comparison using a complex UI layout (500x600 profile screen with gradients, shadows, cards, and text):
+
+| Format | Size | Savings |
+|--------|------|---------|
+| PNG | 443 KB | - |
+| HEIC Lossless | 165 KB | **63% smaller** |
+| HEIC Medium | 31 KB | **93% smaller** |
+| HEIC Maximum (lossy) | 8 KB | **98% smaller** |
+
 You can verify this by looking at [SnapshotTestingHEICTests](Tests/SnapshotTestingHEICTests/__Snapshots__/SnapshotTestingHEICTests).
 
 ## Usage
@@ -22,14 +34,32 @@ import SnapshotTestingHEIC
 class MyViewControllerTests: XCTestCase {
   func testMyViewController() {
     let vc = MyViewController()
-    assertSnapshot(matching: vc, as: .imageHEIC)
+
+    // Default (lossless quality)
+    assertSnapshot(of: vc, as: .imageHEIC)
+
+    // With compression quality options
+    assertSnapshot(of: vc, as: .imageHEIC(compressionQuality: .lossless))  // Best quality, ~63% smaller than PNG
+    assertSnapshot(of: vc, as: .imageHEIC(compressionQuality: .medium))    // Good quality, ~93% smaller than PNG
+    assertSnapshot(of: vc, as: .imageHEIC(compressionQuality: .maximum))   // Smallest size, ~98% smaller than PNG
   }
 }
 ```
 
+### Compression Quality Options
+
+| Option | Description |
+|--------|-------------|
+| `.lossless` | Best quality, no compression artifacts (default) |
+| `.low` | Minimal compression |
+| `.medium` | Balanced quality and size |
+| `.high` | Higher compression |
+| `.maximum` | Smallest file size, some quality loss |
+| `.custom(Double)` | Custom quality value (0.0 - 1.0) |
+
 ## Installation
 
-### Xcode 11
+### Xcode 11+
 
 > Warning: By default, Xcode will try to add the SnapshotTestingHEIC package to your project's main application/framework target. Please ensure that SnapshotTestingHEIC is added to a _test_ target instead, as documented in the last step, below.
  1. From the **File** menu, navigate through **Swift Packages** and select **Add Package Dependency...**.
