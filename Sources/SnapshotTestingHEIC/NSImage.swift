@@ -18,16 +18,14 @@ public extension Diffing where Value == NSImage {
         compressionQuality: CompressionQuality = .lossless,
         opaqueMode: OpaqueMode = .auto
     ) -> Diffing {
+        let emptyHeicData = emptyImage().heicData(compressionQuality: .lossless, opaqueMode: opaqueMode) ?? Data()
         return .init(
-            toData: { NSImageHEICRepresentation($0, compressionQuality: compressionQuality, opaqueMode: opaqueMode)! },
-            fromData: { NSImage(data: $0)! }
+            toData: { $0.heicData(compressionQuality: compressionQuality, opaqueMode: opaqueMode) ?? emptyHeicData },
+            fromData: { NSImage(data: $0) ?? emptyImage() }
         ) { old, new in
-            guard !compare(old, new, precision: precision, compressionQuality: compressionQuality, opaqueMode: opaqueMode)
+            guard let message = compare(old, new, precision: precision, compressionQuality: compressionQuality, opaqueMode: opaqueMode)
             else { return nil }
             let difference = diffNSImage(old, new)
-            let message = new.size == old.size
-            ? "Newly-taken snapshot does not match reference."
-            : "Newly-taken snapshot@\(new.size) does not match reference@\(old.size)."
 
             // Note: XCTest may still produce "opaque image with AlphaLast" warnings
             // when saving attachments to xcresult. This is internal XCTest behavior
@@ -36,7 +34,8 @@ public extension Diffing where Value == NSImage {
             oldAttachment.name = "reference"
             oldAttachment.lifetime = .keepAlways
 
-            let newAttachment = XCTAttachment(image: new)
+            let isEmptyImage = new.size == .zero
+            let newAttachment = XCTAttachment(image: isEmptyImage ? emptyImage() : new)
             newAttachment.name = "failure"
             newAttachment.lifetime = .keepAlways
 
@@ -49,6 +48,35 @@ public extension Diffing where Value == NSImage {
                 [oldAttachment, newAttachment, differenceAttachment]
             )
         }
+    }
+
+    /// Used when the image size has no width or no height to generated the default empty image
+    private static func emptyImage() -> NSImage {
+        let size = NSSize(width: 400, height: 80)
+        let image = NSImage(size: size)
+        image.lockFocus()
+
+        NSColor.red.setFill()
+        NSRect(origin: .zero, size: size).fill()
+
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.alignment = .center
+
+        let attributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: NSColor.white,
+            .font: NSFont.systemFont(ofSize: 12),
+            .paragraphStyle: paragraphStyle
+        ]
+
+        let text = """
+            Error: No image could be generated for this view as its size was zero.
+            Please set an explicit size in the test.
+            """
+        let textRect = NSRect(x: 0, y: 20, width: 400, height: 60)
+        text.draw(in: textRect, withAttributes: attributes)
+
+        image.unlockFocus()
+        return image
     }
 }
 
@@ -89,46 +117,55 @@ private func compare(
     precision: Float,
     compressionQuality: CompressionQuality,
     opaqueMode: OpaqueMode = .auto
-) -> Bool {
-    guard let oldCgImage = old.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return false }
-    guard let newCgImage = new.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return false }
-    guard oldCgImage.width != 0 else { return false }
-    guard newCgImage.width != 0 else { return false }
-    guard oldCgImage.width == newCgImage.width else { return false }
-    guard oldCgImage.height != 0 else { return false }
-    guard newCgImage.height != 0 else { return false }
-    guard oldCgImage.height == newCgImage.height else { return false }
+) -> String? {
+    guard let oldCgImage = old.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+        return "Reference image could not be loaded."
+    }
+    guard let newCgImage = new.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+        return "Newly-taken snapshot could not be loaded."
+    }
+    guard newCgImage.width != 0, newCgImage.height != 0 else {
+        return "Newly-taken snapshot is empty."
+    }
+    guard oldCgImage.width == newCgImage.width, oldCgImage.height == newCgImage.height else {
+        return "Newly-taken snapshot@\(new.size) does not match reference@\(old.size)."
+    }
 
     let pixelCount = oldCgImage.width * oldCgImage.height
     let byteCount = imageContextBytesPerPixel * pixelCount
     var oldBytes = [UInt8](repeating: 0, count: byteCount)
-    var newBytes = [UInt8](repeating: 0, count: byteCount)
-
-    guard let oldContext = createImageContext(for: oldCgImage, data: &oldBytes) else { return false }
-    guard let newContext = createImageContext(for: newCgImage, data: &newBytes) else { return false }
-    guard let oldData = oldContext.data else { return false }
-    guard let newData = newContext.data else { return false }
-
-    if memcmp(oldData, newData, byteCount) == 0 { return true }
-
-    let newer = NSImage(data: NSImageHEICRepresentation(new, compressionQuality: compressionQuality, opaqueMode: opaqueMode)!)!
-    guard let newerCgImage = newer.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return false }
-
+    guard let oldData = createImageContext(for: oldCgImage, data: &oldBytes)?.data else {
+        return "Reference image's data could not be loaded."
+    }
+    if let newContext = createImageContext(for: newCgImage), let newData = newContext.data {
+        if memcmp(oldData, newData, byteCount) == 0 { return nil }
+    }
     var newerBytes = [UInt8](repeating: 0, count: byteCount)
-    guard let newerContext = createImageContext(for: newerCgImage, data: &newerBytes) else { return false }
-    guard let newerData = newerContext.data else { return false }
 
-    if memcmp(oldData, newerData, byteCount) == 0 { return true }
-    if precision >= 1 { return false }
+    guard
+        let heicData = new.heicData(compressionQuality: compressionQuality, opaqueMode: opaqueMode),
+        let newerCgImage = NSImage(data: heicData)?.cgImage(forProposedRect: nil, context: nil, hints: nil),
+        let newerContext = createImageContext(for: newerCgImage, data: &newerBytes),
+        let newerData = newerContext.data
+    else {
+        return "Newly-taken snapshot's data could not be loaded."
+    }
+    if memcmp(oldData, newerData, byteCount) == 0 { return nil }
+    if precision >= 1 {
+        return "Newly-taken snapshot does not match reference."
+    }
 
     // Use shared helper with early exit optimization
-    let (passed, _) = comparePixelBytes(
+    let (passed, actualPrecision) = comparePixelBytes(
         oldBytes,
         newerBytes,
         byteCount: byteCount,
         precision: precision
     )
-    return passed
+    if !passed {
+        return "Actual image precision \(actualPrecision) is less than required \(precision)"
+    }
+    return nil
 }
 
 private func diffNSImage(_ old: NSImage, _ new: NSImage) -> NSImage {

@@ -3,6 +3,20 @@ import AVFoundation
 import Cocoa
 import ImageIO
 
+/// Checks if HEIC encoding is available on the current system.
+/// Returns false on systems without hardware HEVC encoder (e.g., GitHub Actions runners).
+public func isHEICEncodingAvailable() -> Bool {
+    // Create a minimal 1x1 test image
+    let testImage = NSImage(size: NSSize(width: 1, height: 1))
+    testImage.lockFocus()
+    NSColor.white.setFill()
+    NSRect(origin: .zero, size: testImage.size).fill()
+    testImage.unlockFocus()
+
+    // Try to encode it as HEIC
+    return testImage.heicData(compressionQuality: .lossless) != nil
+}
+
 extension NSImage {
     /// Checks if the image is opaque (has no alpha channel)
     var isOpaqueImage: Bool {
