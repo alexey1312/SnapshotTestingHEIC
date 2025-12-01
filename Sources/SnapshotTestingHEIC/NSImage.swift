@@ -98,50 +98,37 @@ private func compare(
     guard oldCgImage.height != 0 else { return false }
     guard newCgImage.height != 0 else { return false }
     guard oldCgImage.height == newCgImage.height else { return false }
-    guard let oldContext = context(for: oldCgImage) else { return false }
-    guard let newContext = context(for: newCgImage) else { return false }
+
+    let pixelCount = oldCgImage.width * oldCgImage.height
+    let byteCount = imageContextBytesPerPixel * pixelCount
+    var oldBytes = [UInt8](repeating: 0, count: byteCount)
+    var newBytes = [UInt8](repeating: 0, count: byteCount)
+
+    guard let oldContext = createImageContext(for: oldCgImage, data: &oldBytes) else { return false }
+    guard let newContext = createImageContext(for: newCgImage, data: &newBytes) else { return false }
     guard let oldData = oldContext.data else { return false }
     guard let newData = newContext.data else { return false }
-    let byteCount = oldContext.height * oldContext.bytesPerRow
+
     if memcmp(oldData, newData, byteCount) == 0 { return true }
+
     let newer = NSImage(data: NSImageHEICRepresentation(new, compressionQuality: compressionQuality, opaqueMode: opaqueMode)!)!
     guard let newerCgImage = newer.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return false }
-    guard let newerContext = context(for: newerCgImage) else { return false }
+
+    var newerBytes = [UInt8](repeating: 0, count: byteCount)
+    guard let newerContext = createImageContext(for: newerCgImage, data: &newerBytes) else { return false }
     guard let newerData = newerContext.data else { return false }
+
     if memcmp(oldData, newerData, byteCount) == 0 { return true }
     if precision >= 1 { return false }
-    let oldRep = NSBitmapImageRep(cgImage: oldCgImage)
-    let newRep = NSBitmapImageRep(cgImage: newerCgImage)
-    var differentPixelCount = 0
-    let pixelCount = oldRep.pixelsWide * oldRep.pixelsHigh
-    let threshold = (1 - precision) * Float(pixelCount)
-    let p1: UnsafeMutablePointer<UInt8> = oldRep.bitmapData!
-    let p2: UnsafeMutablePointer<UInt8> = newRep.bitmapData!
-    for offset in 0 ..< pixelCount * 4 {
-        if p1[offset] != p2[offset] {
-            differentPixelCount += 1
-        }
-        if Float(differentPixelCount) > threshold { return false }
-    }
-    return true
-}
 
-private func context(for cgImage: CGImage) -> CGContext? {
-    guard
-        let space = cgImage.colorSpace,
-        let context = CGContext(
-            data: nil,
-            width: cgImage.width,
-            height: cgImage.height,
-            bitsPerComponent: cgImage.bitsPerComponent,
-            bytesPerRow: cgImage.bytesPerRow,
-            space: space,
-            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-        )
-    else { return nil }
-
-    context.draw(cgImage, in: CGRect(x: 0, y: 0, width: cgImage.width, height: cgImage.height))
-    return context
+    // Use shared helper with early exit optimization
+    let (passed, _) = comparePixelBytes(
+        oldBytes,
+        newerBytes,
+        byteCount: byteCount,
+        precision: precision
+    )
+    return passed
 }
 
 private func diffNSImage(_ old: NSImage, _ new: NSImage) -> NSImage {

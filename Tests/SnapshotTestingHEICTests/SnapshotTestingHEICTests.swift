@@ -439,4 +439,103 @@ final class SnapshotTestingHEICTests: XCTestCase {
     }
 #endif
 
+    // MARK: - CompressionQuality Tests
+
+    func test_CompressionQuality_rawValues() {
+        XCTAssertEqual(CompressionQuality.lossless.rawValue, 1.0)
+        XCTAssertEqual(CompressionQuality.low.rawValue, 0.8)
+        XCTAssertEqual(CompressionQuality.medium.rawValue, 0.5)
+        XCTAssertEqual(CompressionQuality.high.rawValue, 0.2)
+        XCTAssertEqual(CompressionQuality.maximum.rawValue, 0.0)
+        XCTAssertEqual(CompressionQuality.custom(0.75).rawValue, 0.75)
+    }
+
+    func test_CompressionQuality_initFromRawValue() {
+        XCTAssertEqual(CompressionQuality(rawValue: 1.0), .lossless)
+        XCTAssertEqual(CompressionQuality(rawValue: 0.8), .low)
+        XCTAssertEqual(CompressionQuality(rawValue: 0.5), .medium)
+        XCTAssertEqual(CompressionQuality(rawValue: 0.2), .high)
+        XCTAssertEqual(CompressionQuality(rawValue: 0.0), .maximum)
+        XCTAssertEqual(CompressionQuality(rawValue: 0.75), .custom(0.75))
+    }
+
+    func test_CompressionQuality_hashable() {
+        let qualities: Set<CompressionQuality> = [.lossless, .low, .medium, .high, .maximum, .custom(0.75)]
+        XCTAssertEqual(qualities.count, 6)
+
+        // Test that duplicate values hash to the same
+        var duplicateSet: Set<CompressionQuality> = [.lossless, .lossless]
+        XCTAssertEqual(duplicateSet.count, 1)
+
+        duplicateSet.insert(.custom(0.5))
+        duplicateSet.insert(.medium) // Same rawValue as custom(0.5)
+        XCTAssertEqual(duplicateSet.count, 2) // custom(0.5) and .medium are different enum cases
+    }
+
+    // MARK: - OpaqueMode Tests
+
+    func test_OpaqueMode_hashable() {
+        let modes: Set<OpaqueMode> = [.auto, .opaque, .transparent]
+        XCTAssertEqual(modes.count, 3)
+    }
+
+    func test_OpaqueMode_sendable() {
+        // OpaqueMode should be Sendable for concurrent use
+        let mode: OpaqueMode = .auto
+        Task {
+            let _ = mode
+        }
+    }
+
+    // MARK: - ImageComparisonHelpers Tests
+
+    func test_comparePixelBytes_identicalImages_passes() {
+        let bytes1: [UInt8] = [255, 0, 0, 255, 0, 255, 0, 255]
+        let bytes2: [UInt8] = [255, 0, 0, 255, 0, 255, 0, 255]
+
+        let (passed, precision) = comparePixelBytes(bytes1, bytes2, byteCount: 8, precision: 1.0)
+
+        XCTAssertTrue(passed)
+        XCTAssertEqual(precision, 1.0)
+    }
+
+    func test_comparePixelBytes_differentImages_withPrecision() {
+        let bytes1: [UInt8] = [255, 0, 0, 255, 0, 255, 0, 255, 0, 0]
+        let bytes2: [UInt8] = [255, 0, 0, 255, 0, 255, 0, 255, 255, 255] // 2 bytes different
+
+        // 80% precision required, 20% difference (2 out of 10)
+        // threshold = (1 - 0.8) * 10 = 2, differentByteCount = 2
+        // 2 > 2 is false, so it should pass
+        let (passed, precision) = comparePixelBytes(bytes1, bytes2, byteCount: 10, precision: 0.79)
+
+        XCTAssertTrue(passed, "With 20% difference and 79% precision requirement, comparison should pass")
+        XCTAssertEqual(precision, 0.8, accuracy: 0.001)
+    }
+
+    func test_comparePixelBytes_differentImages_failsPrecision() {
+        let bytes1: [UInt8] = [255, 0, 0, 255, 0, 255, 0, 255, 0, 0]
+        let bytes2: [UInt8] = [0, 255, 255, 0, 255, 0, 255, 0, 255, 255] // All bytes different
+
+        // 90% precision required, but all bytes different - should fail
+        let (passed, _) = comparePixelBytes(bytes1, bytes2, byteCount: 10, precision: 0.9)
+
+        XCTAssertFalse(passed)
+    }
+
+    func test_comparePixelBytes_earlyExitOptimization() {
+        // Create large arrays where early bytes differ
+        let bytes1 = [UInt8](repeating: 0, count: 10000)
+        let bytes2 = [UInt8](repeating: 255, count: 10000)
+
+        // With early exit, this should fail quickly without comparing all bytes
+        let start = CFAbsoluteTimeGetCurrent()
+        let (passed, _) = comparePixelBytes(bytes1, bytes2, byteCount: 10000, precision: 0.99)
+        let elapsed = CFAbsoluteTimeGetCurrent() - start
+
+        XCTAssertFalse(passed)
+        // Early exit should make this very fast (< 1ms typically)
+        XCTAssertLessThan(elapsed, 0.1, "Early exit optimization should make comparison fast")
+    }
+
 }
+

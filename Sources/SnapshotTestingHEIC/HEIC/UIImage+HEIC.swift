@@ -17,7 +17,7 @@ extension UIImage {
         }
     }
 
-    func heicData(compressionQuality: CGFloat, opaqueMode: OpaqueMode = .auto) -> Data? {
+    func heicData(compressionQuality: CompressionQuality, opaqueMode: OpaqueMode = .auto) -> Data? {
         let data = NSMutableData()
 
         guard let imageDestination = CGImageDestinationCreateWithData(
@@ -41,8 +41,8 @@ extension UIImage {
 
         var options: [CFString: Any] = [:]
 
-        if compressionQuality < 1 {
-            options[kCGImageDestinationLossyCompressionQuality] = compressionQuality
+        if compressionQuality.rawValue < 1 {
+            options[kCGImageDestinationLossyCompressionQuality] = compressionQuality.rawValue
         }
 
         // Set alpha handling to prevent "opaque image with AlphaLast" warning

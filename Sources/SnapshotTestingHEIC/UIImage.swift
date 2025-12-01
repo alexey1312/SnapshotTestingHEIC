@@ -32,12 +32,12 @@ public extension Diffing where Value == UIImage {
 
         let emptyHeicData: Data
         if #available(iOS 17.0, tvOS 17.0, *) {
-            emptyHeicData = emptyImage().heicData(compressionQuality: 1.0, opaqueMode: opaqueMode) ?? Data()
+            emptyHeicData = emptyImage().heicData(compressionQuality: .lossless, opaqueMode: opaqueMode) ?? Data()
         } else {
             emptyHeicData = Data()
         }
         return Diffing(
-            toData: { $0.heicData(compressionQuality: compressionQuality.rawValue, opaqueMode: opaqueMode) ?? emptyHeicData },
+            toData: { $0.heicData(compressionQuality: compressionQuality, opaqueMode: opaqueMode) ?? emptyHeicData },
             fromData: { UIImage(data: $0, scale: imageScale) ?? emptyImage() },
             diff: { old, new in
                 guard let message = compare(old, new,
@@ -118,11 +118,6 @@ public extension Snapshotting where Value == UIImage, Format == UIImage {
     }
 }
 
-// remap snapshot & reference to same colorspace
-private let imageContextColorSpace = CGColorSpace(name: CGColorSpace.sRGB)
-private let imageContextBitsPerComponent = 8
-private let imageContextBytesPerPixel = 4
-
 private func compare(
     _ old: UIImage,
     _ new: UIImage,
@@ -146,18 +141,18 @@ private func compare(
     let pixelCount = oldCgImage.width * oldCgImage.height
     let byteCount = imageContextBytesPerPixel * pixelCount
     var oldBytes = [UInt8](repeating: 0, count: byteCount)
-    guard let oldData = context(for: oldCgImage, data: &oldBytes)?.data else {
+    guard let oldData = createImageContext(for: oldCgImage, data: &oldBytes)?.data else {
         return "Reference image's data could not be loaded."
     }
-    if let newContext = context(for: newCgImage), let newData = newContext.data {
+    if let newContext = createImageContext(for: newCgImage), let newData = newContext.data {
         if memcmp(oldData, newData, byteCount) == 0 { return nil }
     }
     var newerBytes = [UInt8](repeating: 0, count: byteCount)
 
     guard
-        let heicData = new.heicData(compressionQuality: compressionQuality.rawValue, opaqueMode: opaqueMode),
+        let heicData = new.heicData(compressionQuality: compressionQuality, opaqueMode: opaqueMode),
         let newerCgImage = UIImage(data: heicData)?.cgImage,
-        let newerContext = context(for: newerCgImage, data: &newerBytes),
+        let newerContext = createImageContext(for: newerCgImage, data: &newerBytes),
         let newerData = newerContext.data
     else {
         return "Newly-taken snapshot's data could not be loaded."
@@ -174,38 +169,18 @@ private func compare(
             perceptualPrecision: perceptualPrecision
         )
     } else {
-        let byteCountThreshold = Int((1 - precision) * Float(byteCount))
-        var differentByteCount = 0
-        for offset in 0..<byteCount {
-            if oldBytes[offset] != newerBytes[offset] {
-                differentByteCount += 1
-            }
-        }
-        if differentByteCount > byteCountThreshold {
-            let actualPrecision = 1 - Float(differentByteCount) / Float(byteCount)
+        // Use shared helper with early exit optimization
+        let (passed, actualPrecision) = comparePixelBytes(
+            oldBytes,
+            newerBytes,
+            byteCount: byteCount,
+            precision: precision
+        )
+        if !passed {
             return "Actual image precision \(actualPrecision) is less than required \(precision)"
         }
     }
     return nil
-}
-
-private func context(for cgImage: CGImage, data: UnsafeMutableRawPointer? = nil) -> CGContext? {
-    let bytesPerRow = cgImage.width * imageContextBytesPerPixel
-    guard
-        let colorSpace = imageContextColorSpace,
-        let context = CGContext(
-            data: data,
-            width: cgImage.width,
-            height: cgImage.height,
-            bitsPerComponent: imageContextBitsPerComponent,
-            bytesPerRow: bytesPerRow,
-            space: colorSpace,
-            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-        )
-    else { return nil }
-
-    context.draw(cgImage, in: CGRect(x: 0, y: 0, width: cgImage.width, height: cgImage.height))
-    return context
 }
 
 private func diffImage(_ old: UIImage, _ new: UIImage) -> UIImage {
