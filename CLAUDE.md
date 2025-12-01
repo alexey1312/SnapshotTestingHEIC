@@ -9,6 +9,12 @@ SnapshotTestingHEIC is a Swift library that extends [swift-snapshot-testing](htt
 ## Build Commands
 
 ```bash
+# Build using Swift Package Manager
+swift build
+
+# Run tests (macOS - matches CI)
+swift test
+
 # Build for iOS
 xcodebuild -scheme SnapshotTestingHEIC -destination 'generic/platform=iOS'
 
@@ -18,8 +24,8 @@ xcodebuild -scheme SnapshotTestingHEIC -destination 'platform=macOS'
 # Build for tvOS
 xcodebuild -scheme SnapshotTestingHEIC -destination 'generic/platform=tvOS'
 
-# Run tests (requires simulator)
-xcodebuild test -scheme SnapshotTestingHEIC -destination 'platform=iOS Simulator,name=iPhone 8'
+# Run tests on iOS Simulator
+xcodebuild test -scheme SnapshotTestingHEIC -destination 'platform=iOS Simulator,name=iPhone 16'
 ```
 
 ## Architecture
@@ -47,4 +53,17 @@ The library uses conditional compilation extensively:
 
 ### Testing
 
-Tests use iPad Pro 12.9 as the standard device configuration. Snapshot files are stored in `Tests/SnapshotTestingHEICTests/__Snapshots__/`.
+**CI uses `swift test`** which runs macOS tests only. The reference snapshots are generated for macOS.
+
+iOS tests use iPad Pro 12.9 as the device configuration, but these run locally via xcodebuild, not on CI.
+
+Snapshot files are stored in `Tests/SnapshotTestingHEICTests/__Snapshots__/`.
+
+To re-record snapshots, temporarily add to the test class:
+```swift
+override func invokeTest() {
+    withSnapshotTesting(record: .all) {
+        super.invokeTest()
+    }
+}
+```

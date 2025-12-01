@@ -1,9 +1,9 @@
 # 🗜 SnapshotTestingHEIC
 
 [![GitHub stars](https://img.shields.io/github/stars/alexey1312/SnapshotTestingHEIC?style=social)](https://github.com/alexey1312/SnapshotTestingHEIC)
-[![Platforms](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Falexey1312%2FSnapshotTestingHEIC%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/alexey1312/SnapshotTestingHEIC)
-[![Swift-versions](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Falexey1312%2FSnapshotTestingHEIC%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/alexey1312/SnapshotTestingHEIC)
-[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Falexey1312%2FSnapshotTestingHEIC%2Fbadge&style=flat)](https://actions-badge.atrox.dev/alexey1312/SnapshotTestingHEIC/goto)
+[![Platforms](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Falexey1312%2FSnapshotTestingHEIC%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/alexey1312/SnapshotTestingHEIC)
+[![Swift-versions](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Falexey1312%2FSnapshotTestingHEIC%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/alexey1312/SnapshotTestingHEIC)
+[![CI](https://github.com/alexey1312/SnapshotTestingHEIC/actions/workflows/ci.yml/badge.svg)](https://github.com/alexey1312/SnapshotTestingHEIC/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/alexey1312/SnapshotTestingHEIC.svg)](LICENSE.md)
 
 An extension to [SnapshotTesting](https://github.com/pointfreeco/swift-snapshot-testing) which allows you to create HEIC images.
@@ -31,8 +31,8 @@ class MyViewControllerTests: XCTestCase {
 
 ### Xcode 11
 
-> ⚠️ Warning: By default, Xcode will try to add the SnapshotTestingHEIC package to your project's main application/framework target. Please ensure that SnapshotTestingHEIC is added to a _test_ target instead, as documented in the last step, below.
- 1. From the **File** menu, navigate through **Swift Packages** and select **Add Package Dependency…**.
+> Warning: By default, Xcode will try to add the SnapshotTestingHEIC package to your project's main application/framework target. Please ensure that SnapshotTestingHEIC is added to a _test_ target instead, as documented in the last step, below.
+ 1. From the **File** menu, navigate through **Swift Packages** and select **Add Package Dependency...**.
  2. Enter package repository URL: `https://github.com/alexey1312/SnapshotTestingHEIC`
  3. Confirm the version and let Xcode resolve the package
  4. On the final dialog, update SnapshotTestingHEIC's **Add to Target** column to a test target that will contain snapshot tests (if you have more than one test target, you can later add SnapshotTestingHEIC to them by manually linking the library in its build phase)
@@ -54,9 +54,9 @@ targets: [
   .target(
     name: "MyApp"
   ),
-  
+
   .testTarget(
-    name: "MyAppTests", 
+    name: "MyAppTests",
     dependencies: [
       .target(name: "MyApp"),
       .product(name: "SnapshotTestingHEIC", package: "SnapshotTestingHEIC"),

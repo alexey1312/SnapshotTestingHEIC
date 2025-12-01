@@ -1,20 +1,43 @@
-name: Swift
+name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
-  xcode-build:
-    name: 🔨 develop build
-    runs-on: macOS-latest
-    timeout-minutes: 90
-
+  build-macos:
+    name: Build & Test (macOS)
+    runs-on: macos-15
     steps:
-      - name: 📥 checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: 📋 build
-        run: source Scripts/build.sh
+      - name: Select Xcode 16
+        run: sudo xcode-select -s /Applications/Xcode_16.1.app/Contents/Developer
+
+      - name: Show Swift version
+        run: swift --version
+
+      - name: Build
+        run: swift build
+
+      - name: Run tests
+        run: swift test
+
+  build-linux:
+    name: Build & Test (Linux)
+    runs-on: ubuntu-latest
+    container:
+      image: swift:6.0
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show Swift version
+        run: swift --version
+
+      - name: Build
+        run: swift build
+
+      - name: Run tests
+        run: swift test

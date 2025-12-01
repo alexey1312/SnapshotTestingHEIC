@@ -1,7 +1,10 @@
 // Use iPhone 8 for tests
 import XCTest
 import SnapshotTesting
+
+#if canImport(SwiftUI)
 import SwiftUI
+#endif
 
 @testable import SnapshotTestingHEIC
 
