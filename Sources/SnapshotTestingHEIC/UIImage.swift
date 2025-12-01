@@ -6,7 +6,7 @@ import SnapshotTesting
 public extension Diffing where Value == UIImage {
     /// A pixel-diffing strategy for UIImage's which requires a 100% match.
     static let imageHEIC = Diffing.imageHEIC()
-    
+
     /// A pixel-diffing strategy for UIImage that allows customizing how precise the matching must be.
     ///
     /// - Parameter precision: A value between 0 and 1, where 1 means the images must match 100% of their pixels.
@@ -14,12 +14,14 @@ public extension Diffing where Value == UIImage {
     /// - Parameter scale: Scale to use when loading the reference image from disk. If `nil` or the `UITraitCollection`s
     /// default value of `0.0`, the screens scale is used.
     /// - Parameter compressionQuality: The desired compression quality to use when writing to an image destination.
+    /// - Parameter opaqueMode: Controls alpha channel handling. Use `.auto` to automatically detect, `.opaque` to force no alpha, or `.transparent` to force alpha channel.
     /// - Returns: A new diffing strategy.
     static func imageHEIC(
         precision: Float = 1,
         perceptualPrecision: Float = 1,
         scale: CGFloat? = nil,
-        compressionQuality: CompressionQuality = .lossless
+        compressionQuality: CompressionQuality = .lossless,
+        opaqueMode: OpaqueMode = .auto
     ) -> Diffing {
         let imageScale: CGFloat
         if let scale = scale, scale != 0.0 {
@@ -30,28 +32,39 @@ public extension Diffing where Value == UIImage {
 
         let emptyHeicData: Data
         if #available(iOS 17.0, tvOS 17.0, *) {
-            emptyHeicData = emptyImage().heicData() ?? Data()
+            emptyHeicData = emptyImage().heicData(compressionQuality: 1.0, opaqueMode: opaqueMode) ?? Data()
         } else {
             emptyHeicData = Data()
         }
         return Diffing(
-            toData: { $0.heicData(compressionQuality: compressionQuality.rawValue) ?? emptyHeicData },
+            toData: { $0.heicData(compressionQuality: compressionQuality.rawValue, opaqueMode: opaqueMode) ?? emptyHeicData },
             fromData: { UIImage(data: $0, scale: imageScale) ?? emptyImage() },
             diff: { old, new in
                 guard let message = compare(old, new,
                                             precision: precision,
                                             perceptualPrecision: perceptualPrecision,
-                                            compressionQuality: compressionQuality)
+                                            compressionQuality: compressionQuality,
+                                            opaqueMode: opaqueMode)
                 else { return nil }
 
                 let difference = diffImage(old, new)
+
+                // Note: XCTest may still produce "opaque image with AlphaLast" warnings
+                // when saving attachments to xcresult. This is internal XCTest behavior
+                // and cannot be suppressed. The warning is informational only.
                 let oldAttachment = XCTAttachment(image: old)
                 oldAttachment.name = "reference"
+                oldAttachment.lifetime = .keepAlways
+
                 let isEmptyImage = new.size == .zero
                 let newAttachment = XCTAttachment(image: isEmptyImage ? emptyImage() : new)
                 newAttachment.name = "failure"
+                newAttachment.lifetime = .keepAlways
+
                 let differenceAttachment = XCTAttachment(image: difference)
                 differenceAttachment.name = "difference"
+                differenceAttachment.lifetime = .keepAlways
+
                 return (
                     message,
                     [oldAttachment, newAttachment, differenceAttachment]
@@ -78,18 +91,20 @@ public extension Snapshotting where Value == UIImage, Format == UIImage {
     static var imageHEIC: Snapshotting {
         return .imageHEIC()
     }
-    
+
     /// A snapshot strategy for comparing images based on pixel equality.
     ///
     /// - Parameter precision: The percentage of pixels that must match.
     /// - Parameter perceptualPrecision: The percentage a pixel must match the source pixel to be considered a match. [98-99% mimics the precision of the human eye.](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e)
     /// - Parameter scale: The scale of the reference image stored on disk.
     /// - Parameter compressionQuality: The desired compression quality to use when writing to an image destination.
+    /// - Parameter opaqueMode: Controls alpha channel handling. Use `.auto` to automatically detect, `.opaque` to force no alpha, or `.transparent` to force alpha channel.
     static func imageHEIC(
         precision: Float = 1,
         perceptualPrecision: Float = 1,
         scale: CGFloat? = nil,
-        compressionQuality: CompressionQuality = .lossless
+        compressionQuality: CompressionQuality = .lossless,
+        opaqueMode: OpaqueMode = .auto
     ) -> Snapshotting {
         return Snapshotting(
             pathExtension: "heic",
@@ -97,7 +112,8 @@ public extension Snapshotting where Value == UIImage, Format == UIImage {
                 .imageHEIC(precision: precision,
                            perceptualPrecision: perceptualPrecision,
                            scale: scale,
-                           compressionQuality: compressionQuality)
+                           compressionQuality: compressionQuality,
+                           opaqueMode: opaqueMode)
         )
     }
 }
@@ -112,7 +128,8 @@ private func compare(
     _ new: UIImage,
     precision: Float,
     perceptualPrecision: Float,
-    compressionQuality: CompressionQuality
+    compressionQuality: CompressionQuality,
+    opaqueMode: OpaqueMode = .auto
 ) -> String? {
     guard let oldCgImage = old.cgImage else {
         return "Reference image could not be loaded."
@@ -138,7 +155,7 @@ private func compare(
     var newerBytes = [UInt8](repeating: 0, count: byteCount)
 
     guard
-        let heicData = new.heicData(compressionQuality: compressionQuality.rawValue),
+        let heicData = new.heicData(compressionQuality: compressionQuality.rawValue, opaqueMode: opaqueMode),
         let newerCgImage = UIImage(data: heicData)?.cgImage,
         let newerContext = context(for: newerCgImage, data: &newerBytes),
         let newerData = newerContext.data

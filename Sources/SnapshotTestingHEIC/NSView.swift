@@ -13,8 +13,19 @@ public extension Snapshotting where Value == NSView, Format == NSImage {
     /// - Parameters:
     ///   - precision: The percentage of pixels that must match.
     ///   - size: A view size override.
-    static func imageHEIC(precision: Float = 1, size: CGSize? = nil) -> Snapshotting {
-        return SimplySnapshotting.imageHEIC(precision: precision).asyncPullback { view in
+    ///   - compressionQuality: The desired compression quality to use when writing to an image destination.
+    ///   - opaqueMode: Controls alpha channel handling. Use `.auto` to automatically detect, `.opaque` to force no alpha, or `.transparent` to force alpha channel.
+    static func imageHEIC(
+        precision: Float = 1,
+        size: CGSize? = nil,
+        compressionQuality: CompressionQuality = .lossless,
+        opaqueMode: OpaqueMode = .auto
+    ) -> Snapshotting {
+        return SimplySnapshotting.imageHEIC(
+            precision: precision,
+            compressionQuality: compressionQuality,
+            opaqueMode: opaqueMode
+        ).asyncPullback { view in
             let initialSize = view.frame.size
             if let size = size { view.frame.size = size }
             guard view.frame.width > 0, view.frame.height > 0 else {

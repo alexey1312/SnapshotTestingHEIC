@@ -17,20 +17,23 @@ public extension Snapshotting where Value == UIViewController, Format == UIImage
     ///   - size: A view size override.
     ///   - traits: A trait collection override.
     ///   - compressionQuality: The desired compression quality to use when writing to an image destination.
+    ///   - opaqueMode: Controls alpha channel handling. Use `.auto` to automatically detect, `.opaque` to force no alpha, or `.transparent` to force alpha channel.
     static func imageHEIC(
         on config: ViewImageConfig,
         precision: Float = 1,
         perceptualPrecision: Float = 1,
         size: CGSize? = nil,
         traits: UITraitCollection = .init(),
-        compressionQuality: CompressionQuality = .lossless
+        compressionQuality: CompressionQuality = .lossless,
+        opaqueMode: OpaqueMode = .auto
     )
     -> Snapshotting {
         return SimplySnapshotting.imageHEIC(
             precision: precision,
             perceptualPrecision: perceptualPrecision,
             scale: traits.displayScale,
-            compressionQuality: compressionQuality
+            compressionQuality: compressionQuality,
+            opaqueMode: opaqueMode
         ).asyncPullback { viewController in
             snapshotView(
                 config: size.map { .init(safeArea: config.safeArea, size: $0, traits: config.traits) } ?? config,
@@ -53,20 +56,23 @@ public extension Snapshotting where Value == UIViewController, Format == UIImage
     ///   - size: A view size override.
     ///   - traits: A trait collection override.
     ///   - compressionQuality: The desired compression quality to use when writing to an image destination.
+    ///   - opaqueMode: Controls alpha channel handling. Use `.auto` to automatically detect, `.opaque` to force no alpha, or `.transparent` to force alpha channel.
     static func imageHEIC(
         drawHierarchyInKeyWindow: Bool = false,
         precision: Float = 1,
         perceptualPrecision: Float = 1,
         size: CGSize? = nil,
         traits: UITraitCollection = .init(),
-        compressionQuality: CompressionQuality = .lossless
+        compressionQuality: CompressionQuality = .lossless,
+        opaqueMode: OpaqueMode = .auto
     )
     -> Snapshotting {
         return SimplySnapshotting.imageHEIC(
             precision: precision,
             perceptualPrecision: perceptualPrecision,
             scale: traits.displayScale,
-            compressionQuality: compressionQuality
+            compressionQuality: compressionQuality,
+            opaqueMode: opaqueMode
         ).asyncPullback { viewController in
             snapshotView(
                 config: .init(safeArea: .zero, size: size, traits: traits),
