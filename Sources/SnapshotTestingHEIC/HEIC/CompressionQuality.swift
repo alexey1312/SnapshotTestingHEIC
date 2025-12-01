@@ -1,5 +1,18 @@
 import Foundation
 
+/// Controls how alpha channel is handled during HEIC encoding.
+///
+/// Using `.auto` (default) automatically detects if the image has transparency.
+/// This prevents the "opaque image with AlphaLast" warning and reduces file size.
+public enum OpaqueMode: Hashable, Sendable {
+    /// Automatically detect based on image's alpha info (recommended)
+    case auto
+    /// Force opaque encoding (no alpha channel)
+    case opaque
+    /// Force transparent encoding (with alpha channel)
+    case transparent
+}
+
 public enum CompressionQuality: Hashable, RawRepresentable {
     case lossless
     case low

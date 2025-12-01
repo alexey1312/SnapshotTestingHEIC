@@ -7,7 +7,7 @@ public extension Snapshotting where Value == UIView, Format == UIImage {
     static var imageHEIC: Snapshotting {
         return .imageHEIC()
     }
-    
+
     /// A snapshot strategy for comparing views based on pixel equality.
     ///
     /// - Parameters:
@@ -19,20 +19,23 @@ public extension Snapshotting where Value == UIView, Format == UIImage {
     ///   - size: A view size override.
     ///   - traits: A trait collection override.
     ///   - compressionQuality: The desired compression quality to use when writing to an image destination.
+    ///   - opaqueMode: Controls alpha channel handling. Use `.auto` to automatically detect, `.opaque` to force no alpha, or `.transparent` to force alpha channel.
     static func imageHEIC(
         drawHierarchyInKeyWindow: Bool = false,
         precision: Float = 1,
         perceptualPrecision: Float = 1,
         size: CGSize? = nil,
         traits: UITraitCollection = .init(),
-        compressionQuality: CompressionQuality = .lossless
+        compressionQuality: CompressionQuality = .lossless,
+        opaqueMode: OpaqueMode = .auto
     )
     -> Snapshotting {
         return SimplySnapshotting.imageHEIC(
             precision: precision,
             perceptualPrecision: perceptualPrecision,
             scale: traits.displayScale,
-            compressionQuality: compressionQuality
+            compressionQuality: compressionQuality,
+            opaqueMode: opaqueMode
         ).asyncPullback { view in
             snapshotView(
                 config: .init(safeArea: .zero, size: size ?? view.frame.size, traits: .init()),

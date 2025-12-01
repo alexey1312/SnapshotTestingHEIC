@@ -27,13 +27,15 @@ public extension Snapshotting where Value: SwiftUI.View, Format == UIImage {
     ///   - layout: A view layout override.
     ///   - traits: A trait collection override.
     ///   - compressionQuality: The desired compression quality to use when writing to an image destination.
+    ///   - opaqueMode: Controls alpha channel handling. Use `.auto` to automatically detect, `.opaque` to force no alpha, or `.transparent` to force alpha channel.
     static func imageHEIC(
         drawHierarchyInKeyWindow: Bool = false,
         precision: Float = 1,
         perceptualPrecision: Float = 1,
         layout: SwiftUISnapshotLayout = .sizeThatFits,
         traits: UITraitCollection = .init(),
-        compressionQuality: CompressionQuality = .lossless
+        compressionQuality: CompressionQuality = .lossless,
+        opaqueMode: OpaqueMode = .auto
     ) -> Snapshotting {
         let config: ViewImageConfig
 
@@ -53,7 +55,8 @@ public extension Snapshotting where Value: SwiftUI.View, Format == UIImage {
             precision: precision,
             perceptualPrecision: perceptualPrecision,
             scale: traits.displayScale,
-            compressionQuality: compressionQuality
+            compressionQuality: compressionQuality,
+            opaqueMode: opaqueMode
         ).asyncPullback { view in
             var config = config
 
