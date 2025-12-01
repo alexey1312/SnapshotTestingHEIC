@@ -57,6 +57,37 @@ class MyViewControllerTests: XCTestCase {
 | `.maximum` | Smallest file size, some quality loss |
 | `.custom(Double)` | Custom quality value (0.0 - 1.0) |
 
+### Opaque Mode Options
+
+You can also control how alpha channel is handled:
+
+```swift
+// Auto-detect (default) - automatically detects if image has transparency
+assertSnapshot(of: vc, as: .imageHEIC(compressionQuality: .lossless, opaqueMode: .auto))
+
+// Force opaque - no alpha channel
+assertSnapshot(of: vc, as: .imageHEIC(compressionQuality: .lossless, opaqueMode: .opaque))
+
+// Force transparent - with alpha channel
+assertSnapshot(of: vc, as: .imageHEIC(compressionQuality: .lossless, opaqueMode: .transparent))
+```
+
+| Option | Description |
+|--------|-------------|
+| `.auto` | Automatically detect based on image's alpha info (default) |
+| `.opaque` | Force opaque encoding (no alpha channel) |
+| `.transparent` | Force transparent encoding (with alpha channel) |
+
+### Known XCTest Warning
+
+When running snapshot tests, you may see warnings like:
+
+```
+⭕️ ERROR: 'xctest' is trying to save an opaque image with 'AlphaLast'
+```
+
+**This warning comes from XCTest internally**, not from SnapshotTestingHEIC. It occurs when XCTest saves image attachments (reference, failure, difference) to the xcresult bundle. This is Apple's internal behavior and cannot be suppressed. The warning is informational only and **does not affect** the functionality or file sizes of your HEIC snapshots.
+
 ## Installation
 
 ### Xcode 11+
