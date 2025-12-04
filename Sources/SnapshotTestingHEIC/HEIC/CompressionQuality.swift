@@ -37,7 +37,7 @@ public enum CompressionQuality: Hashable, RawRepresentable {
             self = .custom(rawValue)
         }
     }
-    
+
     public var rawValue: CGFloat {
         switch self {
         case .lossless:
