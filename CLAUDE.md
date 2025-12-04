@@ -6,14 +6,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 SnapshotTestingHEIC is a Swift library that extends [swift-snapshot-testing](https://github.com/pointfreeco/swift-snapshot-testing) to support HEIC image format for snapshot tests. HEIC provides comparable image quality to PNG with smaller file sizes.
 
+Minimum Swift version: 5.2. Supports iOS 13+, macOS 10.15+, tvOS 13+.
+
 ## Build Commands
 
 ```bash
 # Build using Swift Package Manager
 swift build
 
-# Run tests (macOS - matches CI)
+# Run tests (macOS/Linux - matches CI)
 swift test
+
+# Run a single test
+swift test --filter SnapshotTestingHEICTests.test_CompressionQuality_rawValues
 
 # Build for iOS
 xcodebuild -scheme SnapshotTestingHEIC -destination 'generic/platform=iOS'
@@ -61,7 +66,7 @@ The library uses conditional compilation extensively:
 
 ### Testing
 
-**CI uses `swift test`** which runs macOS tests only. The reference snapshots are generated for macOS.
+**CI uses `swift test`** which runs on both macOS and Linux. The reference snapshots are generated for macOS. macOS tests skip on systems without HEIC encoding support (e.g., GitHub Actions runners) using `isHEICEncodingAvailable()`.
 
 iOS tests use iPad Pro 12.9 (`.iPadPro12_9`) as the device configuration. **Running on other devices will fail** due to resolution mismatch. These run locally via xcodebuild, not on CI.
 
