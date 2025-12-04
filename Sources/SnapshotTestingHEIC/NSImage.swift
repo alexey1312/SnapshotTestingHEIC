@@ -133,32 +133,48 @@ private func compare(
 
     let pixelCount = oldCgImage.width * oldCgImage.height
     let byteCount = imageContextBytesPerPixel * pixelCount
-    var oldBytes = [UInt8](repeating: 0, count: byteCount)
-    guard let oldData = createImageContext(for: oldCgImage, data: &oldBytes)?.data else {
+
+    // Allocate single reusable buffer to reduce memory pressure
+    var pixelBuffer = [UInt8](repeating: 0, count: byteCount)
+
+    guard let oldContext = createImageContext(for: oldCgImage, data: &pixelBuffer),
+          let oldData = oldContext.data else {
         return "Reference image's data could not be loaded."
     }
-    if let newContext = createImageContext(for: newCgImage), let newData = newContext.data {
-        if memcmp(oldData, newData, byteCount) == 0 { return nil }
-    }
-    var newerBytes = [UInt8](repeating: 0, count: byteCount)
 
+    // Copy old bytes since we'll reuse the buffer
+    let oldBytes = UnsafeMutablePointer<UInt8>.allocate(capacity: byteCount)
+    defer { oldBytes.deallocate() }
+    memcpy(oldBytes, oldData, byteCount)
+
+    // Fast path: compare raw new image first (before HEIC encoding)
+    if let newContext = createImageContext(for: newCgImage, data: &pixelBuffer),
+       let newData = newContext.data {
+        if memcmp(oldBytes, newData, byteCount) == 0 { return nil }
+    }
+
+    // HEIC round-trip comparison (simulates save/load cycle)
     guard
         let heicData = new.heicData(compressionQuality: compressionQuality, opaqueMode: opaqueMode),
         let newerCgImage = NSImage(data: heicData)?.cgImage(forProposedRect: nil, context: nil, hints: nil),
-        let newerContext = createImageContext(for: newerCgImage, data: &newerBytes),
+        let newerContext = createImageContext(for: newerCgImage, data: &pixelBuffer),
         let newerData = newerContext.data
     else {
         return "Newly-taken snapshot's data could not be loaded."
     }
-    if memcmp(oldData, newerData, byteCount) == 0 { return nil }
+
+    // Fast path: exact match after HEIC round-trip
+    if memcmp(oldBytes, newerData, byteCount) == 0 { return nil }
+
+    // No match with full precision required
     if precision >= 1 {
         return "Newly-taken snapshot does not match reference."
     }
 
-    // Use shared helper with early exit optimization
+    // Precision-based pixel comparison with optimized block comparison
     let (passed, actualPrecision) = comparePixelBytes(
         oldBytes,
-        newerBytes,
+        newerData.assumingMemoryBound(to: UInt8.self),
         byteCount: byteCount,
         precision: precision
     )
