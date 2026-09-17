@@ -10,6 +10,8 @@
 An extension to [SnapshotTesting](https://github.com/pointfreeco/swift-snapshot-testing) which allows you to create HEIC images.
 The benefit of using HEIC instead of PNG is that it can store as much as image quality as PNG, but with a smaller file size.
 
+**Website:** [blog.kakoulin.com/apps/snapshottesting-heic](https://blog.kakoulin.com/apps/snapshottesting-heic)
+
 ## File Size Comparison
 
 Real-world comparison using a complex UI layout (500x600 profile screen with gradients, shadows, cards, and text):
